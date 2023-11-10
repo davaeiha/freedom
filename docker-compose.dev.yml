@@ -1,7 +1,8 @@
 version: '3.8'
 
 services:
-  optinetflow:
+  v2ray_telegram:
+    container_name: v2ray_telegram
     env_file:
       - .env
     build:
@@ -17,3 +18,4 @@ services:
       - /app/.yarn/
       - ./:/app
     command: yarn start:dev
+    

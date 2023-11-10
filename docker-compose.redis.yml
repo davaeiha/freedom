@@ -1,0 +1,23 @@
+networks:
+  default:
+    external:
+      name: ${NETWORK_NAME}
+
+services:
+  redis:
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: redis:7.2.2
+    expose:
+      - 6379
+    ports:
+      - 6379:${REDIS_PORT}
+    volumes:
+      - redis-data:/data
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=3
+
+volumes:
+  redis-data:
+    driver: local
