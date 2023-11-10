@@ -1,0 +1,5 @@
+mutation buyPackage($type:PackageType!){
+  buyPackage(data:{
+    type:$type
+  })
+}

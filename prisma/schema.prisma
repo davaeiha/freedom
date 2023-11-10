@@ -13,17 +13,95 @@ generator dbml {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  phone     String   @unique
-  password  String
-  firstname String?
-  lastname  String?
-  role      Role     @default(USER)
+  id             Int                    @id @default(autoincrement())
+  created_at     DateTime               @default(now())
+  updated_at     DateTime?              @updatedAt
+  phone          String?                @unique
+  password       String?
+  name           String?
+  username       String?
+  credit         Int?                   @default(0)
+  role           Role                   @default(USER)
+  orders         Order[]
+  payments       Payment[]
+  editedPayments Payment[]              @relation(name: "admin_edit")
+  adminMessages  AdminPaymentMessages[]
+}
+
+model Package {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  month      Int
+  volume     Int
+  cost       Int
+  oreders    Order[]
+  deprecated Boolean  @default(false)
+
+  @@unique([month, volume, created_at])
+}
+
+model Order {
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now())
+  active_at  DateTime?
+  user_id    Int
+  config_url String?
+  package_id Int
+  title      String?
+  package    Package   @relation(fields: [package_id], references: [id])
+  user       User      @relation(fields: [user_id], references: [id])
+}
+
+model Payment {
+  id            Int                    @id @default(autoincrement())
+  created_at    DateTime               @default(now())
+  user_id       Int
+  admin_id      Int?
+  file_name     String
+  amount        Int?
+  user          User                   @relation(fields: [user_id], references: [id])
+  adminMessages AdminPaymentMessages[]
+  admin         User?                  @relation(name: "admin_edit", fields: [admin_id], references: [id])
+}
+
+model AdminPaymentMessages {
+  id                   Int     @id @default(autoincrement())
+  admin_id             Int
+  payment_id           Int
+  forwarded_message_id Int
+  status_message_id    Int
+  admin                User    @relation(fields: [admin_id], references: [id])
+  payment              Payment @relation(fields: [payment_id], references: [id])
 }
 
 enum Role {
   ADMIN
   USER
+}
+
+enum PackageType {
+  M1_20G
+  M1_40G
+  M1_60G
+  M1_80G
+  M1_100G
+  M1_120G
+  M1_160G
+  M1_200G
+  M3_60G
+  M3_120G
+  M3_180G
+  M3_240G
+  M3_300G
+  M3_360G
+  M3_480G
+  M3_600G
+  M6_120G
+  M6_240G
+  M6_360G
+  M6_480G
+  M6_600G
+  M6_720G
+  M6_960G
+  M6_1200G
 }

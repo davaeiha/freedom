@@ -9,6 +9,9 @@ export interface Config {
   graphql: GraphqlConfig;
   security: SecurityConfig;
   minio: MinioConfig;
+  telegram: TelegramConfig;
+  redis: RedisConfig;
+  v2ray: V2rayConfig;
 }
 
 export interface NestConfig {
@@ -50,4 +53,22 @@ export interface MinioConfig {
   rootPassword: string;
   bucket: string;
   region: string;
+  request?: string;
+}
+
+export interface TelegramConfig {
+  user_bot_api_token: string;
+  group_bot_api_token: string;
+}
+
+export interface RedisConfig {
+  url?: string;
+  host: string;
+  port: number;
+  ttl: number;
+  db: number;
+}
+
+export interface V2rayConfig {
+  endpoint: string;
 }

@@ -2,20 +2,28 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ScheduleModule } from '@nestjs/schedule';
 import { loggingMiddleware, PrismaModule } from 'nestjs-prisma';
-
-import { AppController } from './app.controller';
-import { AppResolver } from './app.resolver';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import config from './common/configs/config';
 import { GqlConfigService } from './gql-config.service';
+import { UserBotModule } from './user_bot/user_bot.module';
+import { AdminBotModule } from './group_bot/group_bot.module';
+import { OrderModule } from './order/order.module';
+import { RedisModule } from './redis/redis.module';
+import { AppResolver } from './app.resolver';
 import { MinioClientModule } from './minio/minio.module';
-import { UsersModule } from './users/users.module';
+import { PaymentModule } from './payment/payment.module';
+import { PackageModule } from './package/package.module';
+import { V2rayModule } from './v2ray/v2ray.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+    EventEmitterModule.forRoot({
+      delimiter: '.',
+      wildcard: true,
+    }),
     PrismaModule.forRoot({
       isGlobal: true,
       prismaServiceOptions: {
@@ -28,16 +36,20 @@ import { UsersModule } from './users/users.module';
         ],
       },
     }),
-
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       useClass: GqlConfigService,
     }),
+    ScheduleModule.forRoot(),
+    UserBotModule,
+    AdminBotModule,
+    OrderModule,
+    RedisModule,
     MinioClientModule,
-    AuthModule,
-    UsersModule,
+    PaymentModule,
+    PackageModule,
+    V2rayModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, AppResolver],
+  providers: [AppResolver],
 })
 export class AppModule {}

@@ -1,6 +1,5 @@
 import type { OnModuleInit } from '@nestjs/common';
 import { Global, Module } from '@nestjs/common';
-
 import { MinioClientService } from './minio.service';
 
 @Global()
@@ -15,7 +14,7 @@ export class MinioClientModule implements OnModuleInit {
     try {
       await this.minioService.init();
     } catch (error) {
-      console.error('minio crash');
+      console.trace('minio crash');
       console.error(error);
     }
   }

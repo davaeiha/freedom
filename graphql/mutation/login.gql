@@ -1,0 +1,14 @@
+mutation login($password:String!,$phone:String!){
+  login(data:{
+    password:$password,
+    phone:$phone
+  }){
+    accessToken
+    refreshToken
+    user{
+      id
+      firstname
+      lastname
+    }
+  }
+}

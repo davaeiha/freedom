@@ -1,0 +1,13 @@
+query ClientStats($email: String, $id: String) {
+  clientStats(filters: { email: $email, id: $id }) {
+    id
+    email
+    enable
+    expiryTime
+    up
+    down
+    total
+    createdAt
+    updatedAt
+  }
+}
