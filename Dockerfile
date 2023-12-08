@@ -21,8 +21,17 @@ COPY prisma ./
 RUN yarn prisma:generate && yarn migrate:dev
 
 COPY . .
-CMD  yarn start
 
+ADD prisma ./prisma
+COPY .env ./
+RUN yarn prisma:generate
+
+COPY . .
+RUN yarn build
+
+# ENTRYPOINT yarn migrate:dev:create && yarn migrate deploy
+
+CMD node dist/main
 
 # RUN corepack enable \
 #   && corepack prepare pnpm@latest --activate \

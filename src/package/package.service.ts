@@ -73,7 +73,8 @@ export class PackageService {
     return this.redis.set('months', JSON.stringify(months));
   }
 
-  @Interval(60 * 1000)
+
+  @Interval(60 * 60 * 1000)
   async setMonthInCacheEveryMiniute() {
     const months = await this.getMonth();
     return this.redis.set('months', JSON.stringify(months));

@@ -7,6 +7,7 @@ networks:
   default:
     external:
       name: ${NETWORK_NAME}
+
 services:
   minio:
     container_name: ${MINIO_CONTAINER_NAME}
@@ -27,11 +28,6 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
-    # networks:
-    #   v2ray:
-    #     aliases:
-    #       - ${MINIO_HOST_NAME}
-
   # minio-client:
   #   image: minio/mc:RELEASE.2023-07-21T20-44-27Z
   #   entrypoint: ['/bin/sh', '-c']

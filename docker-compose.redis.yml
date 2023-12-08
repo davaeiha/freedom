@@ -4,8 +4,9 @@ networks:
       name: ${NETWORK_NAME}
 
 services:
-  redis:
+  redis_vbot:
     container_name: ${REDIS_CONTAINER_NAME}
+    restart: unless-stopped
     image: redis:7.2.2
     expose:
       - 6379
