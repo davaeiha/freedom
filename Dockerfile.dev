@@ -10,8 +10,8 @@ RUN apk add --no-cache \
 
 # Download and install the Minio client
 RUN curl -LO https://dl.min.io/client/mc/release/linux-amd64/mc && \
-    chmod +x mc && \
-    mv mc /usr/local/bin/
+  chmod +x mc && \
+  mv mc /usr/local/bin/
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./

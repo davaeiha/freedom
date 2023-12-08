@@ -1,13 +1,11 @@
 /*  eslint-disable no-await-in-loop */
-
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { ReadStream } from 'fs';
 import { Client } from 'minio';
-
 import type { MinioConfig } from '../common/configs/config.interface';
 import { stream2buffer } from '../common/helpers';
-import type { BufferedFile } from './minio.model';
+import type { BufferedFile } from '../common/contracts/IFile';
 
 @Injectable()
 export class MinioClientService {
@@ -43,9 +41,7 @@ export class MinioClientService {
 
   public async upload(files: BufferedFile[], bucketName: string = this.bucketName): Promise<string[]> {
     for (const file of files) {
-      if (
-        !(file.mimetype.includes('png') || file.mimetype.includes('webp') || file.mimetype.includes('officedocument'))
-      ) {
+      if (!(file.mimetype.includes('png') || file.mimetype.includes('jpg') || file.mimetype.includes('jpeg'))) {
         throw new HttpException('File type not supported', HttpStatus.BAD_REQUEST);
       }
 

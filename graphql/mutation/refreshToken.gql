@@ -1,0 +1,6 @@
+mutation refreshToken($token: JWT!) {
+  refreshToken(token: $token) {
+    accessToken
+    refreshToken
+  }
+}

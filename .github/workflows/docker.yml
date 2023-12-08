@@ -1,0 +1,22 @@
+name: build the project
+
+on:
+  push:
+    branches:
+      - 'ci'
+      
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup-basics:
+    uses: ./.github/workflows/reuse-setup.yml
+  build:
+    runs-on: self-hosted
+    environment: production
+    needs: setup-basics
+    steps:
+      - name: build project
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env

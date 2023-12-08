@@ -41,6 +41,20 @@ const config: Config = {
     region: process.env.MINIO_REGION_NAME!,
     bucket: process.env.MINIO_BUCKET!,
   },
+  telegram: {
+    user_bot_api_token: process.env.User_Bot_Api_Token!,
+    group_bot_api_token: process.env.Group_Bot_Api_Token!,
+  },
+  redis: {
+    url:process.env.REDIS_URL!,
+    host: process.env.REDIS_HOST!,
+    port: Number.parseInt(process.env.REDIS_PORT!),
+    ttl: Number.parseInt(process.env.REDIS_TTL!),
+    db: 0,
+  },
+  v2ray:{
+    endpoint: process.env.V2RAY_ENDPOINT!
+  }
 };
 
 // eslint-disable-next-line import/no-default-export

@@ -3,17 +3,109 @@
 //// ------------------------------------------------------
 
 Table User {
-  id String [pk]
-  createdAt DateTime [default: `now()`, not null]
-  updatedAt DateTime [not null]
-  phone String [unique, not null]
-  password String [not null]
-  firstname String
-  lastname String
+  id Int [pk, increment]
+  created_at DateTime [default: `now()`, not null]
+  updated_at DateTime
+  phone String [unique]
+  password String
+  name String
+  username String
+  credit Int [default: 0]
   role Role [not null, default: 'USER']
+  orders Order [not null]
+  payments Payment [not null]
+  editedPayments Payment [not null]
+  adminMessages AdminPaymentMessages [not null]
+}
+
+Table Package {
+  id Int [pk, increment]
+  created_at DateTime [default: `now()`, not null]
+  month Int [not null]
+  volume Int [not null]
+  cost Int [not null]
+  oreders Order [not null]
+  deprecated Boolean [not null, default: false]
+
+  indexes {
+    (month, volume, created_at) [unique]
+  }
+}
+
+Table Order {
+  id Int [pk, increment]
+  created_at DateTime [default: `now()`, not null]
+  active_at DateTime
+  user_id Int [not null]
+  config_url String
+  package_id Int [not null]
+  title String
+  package Package [not null]
+  user User [not null]
+}
+
+Table Payment {
+  id Int [pk, increment]
+  created_at DateTime [default: `now()`, not null]
+  user_id Int [not null]
+  admin_id Int
+  file_name String [not null]
+  amount Int
+  user User [not null]
+  adminMessages AdminPaymentMessages [not null]
+  admin User
+}
+
+Table AdminPaymentMessages {
+  id Int [pk, increment]
+  admin_id Int [not null]
+  payment_id Int [not null]
+  forwarded_message_id Int [not null]
+  status_message_id Int [not null]
+  admin User [not null]
+  payment Payment [not null]
 }
 
 Enum Role {
   ADMIN
   USER
 }
+
+Enum PackageType {
+  M1_20G
+  M1_40G
+  M1_60G
+  M1_80G
+  M1_100G
+  M1_120G
+  M1_160G
+  M1_200G
+  M3_60G
+  M3_120G
+  M3_180G
+  M3_240G
+  M3_300G
+  M3_360G
+  M3_480G
+  M3_600G
+  M6_120G
+  M6_240G
+  M6_360G
+  M6_480G
+  M6_600G
+  M6_720G
+  M6_960G
+  M6_1200G
+}
+
+Ref: Order.package_id > Package.id
+
+Ref: Order.user_id > User.id
+
+Ref: Payment.user_id > User.id
+
+Ref: Payment.admin_id > User.id
+
+Ref: AdminPaymentMessages.admin_id > User.id
+
+Ref: AdminPaymentMessages.payment_id > Payment.id
