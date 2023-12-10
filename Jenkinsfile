@@ -1,12 +1,28 @@
 //Jenkinsfile (Declarative Pipeline)
+def gv
 
 pipeline {
     agent any
+    environment {
+        SECRET_FILE = credentials('Freedom-prod-env')
+    }
+    parameters {
+        string(name: 'TAG', defaultValue: '1.0')
+    }
     stages {
+        stage('init') {
+            steps {
+                script {
+                    gv = load 'script.groovy'
+                }
+            }
+        }
         stage('build') {
             steps {
-                sh 'docker pull  davaeiha/freedom:1.0'
-                sh 'docker run -p 3333:3333 davaeiha/freedom:1.0'
+                script {
+                    sh "cat $SECRET_FILE > .env"
+                    gv.buildImage()
+                }
             }
         }
     }

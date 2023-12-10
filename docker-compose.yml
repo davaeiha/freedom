@@ -7,6 +7,7 @@ networks:
 
 services:
   bot:
+    image: davaeiha/freedom:1.0
     container_name: ${CONTAINER_NAME}
     restart: unless-stopped
     env_file:
