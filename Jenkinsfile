@@ -1,5 +1,5 @@
-Jenkinsfile (Declarative Pipeline)
-/* Requires the Docker Pipeline plugin */
+//Jenkinsfile (Declarative Pipeline)
+
 pipeline {
     agent { docker { image 'davaeiha/freedom:1.0' } }
     stages {
