@@ -17,11 +17,6 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install 
 
-COPY prisma ./
-RUN yarn prisma:generate && yarn migrate:dev
-
-COPY . .
-
 ADD prisma ./prisma
 COPY .env ./
 RUN yarn prisma:generate
