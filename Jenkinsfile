@@ -1,7 +1,7 @@
 //Jenkinsfile (Declarative Pipeline)
 
 pipeline {
-    agent { docker { image 'davaeiha/freedom:1.0' } }
+    agent any
     stages {
         stage('build') {
             steps {
