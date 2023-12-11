@@ -6,9 +6,6 @@ pipeline {
     environment {
         SECRET_FILE = credentials('Freedom-prod-env')
     }
-    parameters {
-        string(name: 'TAG', defaultValue: '1.0')
-    }
     stages {
         stage('init') {
             steps {
@@ -17,6 +14,15 @@ pipeline {
                 }
             }
         }
+
+        stage('version') {
+            steps {
+                script {
+                    gv.incrementVersion()
+                }
+            }
+        }
+
         stage('build') {
             steps {
                 script {

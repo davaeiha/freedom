@@ -1,6 +1,6 @@
 {
   "name": "v2ray-telegram",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "telegraf bot for v2ray",
   "author": "Schezophernia",
   "license": "MIT",
@@ -11,14 +11,15 @@
     "prisma client",
     "typescript",
     "passport",
-    "graphql"
+    "graphql",
+    "telegram"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/masihjahangiri/nestjs-graphql-prisma-minio-starter.git"
+    "url": "https://github.com/davaeiha/freedom.git"
   },
   "bugs": {
-    "url": "https://github.com/masihjahangiri/nestjs-graphql-prisma-minio-starter/issues"
+    "url": "https://github.com/davaeiha/freedom.git/issues"
   },
   "scripts": {
     "build": "nest build",
