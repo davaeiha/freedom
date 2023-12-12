@@ -1,3 +1,4 @@
+def version
 
 def incrementVersion() {
     echo 'incrementing version...'
@@ -7,7 +8,7 @@ def incrementVersion() {
 def buildImage() {
     echo 'building the freedom image...'
 
-    def version = sh(
+    version = sh(
         script: 'npm pkg get version|tr --delete \\"',
         returnStdout: true
     ).trim()
@@ -20,6 +21,19 @@ def buildImage() {
         sh "docker build -t davaeiha/freedom:$version ."
         sh "echo $PASS | docker login -u $USER --password-stdin"
         sh "docker push davaeiha/freedom:$version"
+    }
+}
+
+def commitGithub() {
+    withCredentials([
+        usernamePassword(credentialsId:'github-cred',
+        passwordVariable: 'PASS',
+        usernameVariable:'USER')
+    ]) {
+        sh "git remote set-url origin https://${USER}:${PASS}@github.com/davaeiha/freedom.git"
+        sh 'git add .'
+        sh "git commit -m \"new version: added\""
+        sh 'git push origin HEAD:dev'
     }
 }
 

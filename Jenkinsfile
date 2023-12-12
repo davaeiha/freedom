@@ -23,6 +23,14 @@ pipeline {
             }
         }
 
+        stage('commit-version-github') {
+            steps {
+                script {
+                    gv.commitGithub()
+                }
+            }
+        }
+
         stage('build') {
             steps {
                 script {
