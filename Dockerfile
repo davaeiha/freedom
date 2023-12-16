@@ -24,15 +24,4 @@ RUN yarn prisma:generate
 COPY . .
 RUN yarn build
 
-# ENTRYPOINT yarn migrate:dev:create && yarn migrate deploy
-
 CMD node dist/main
-
-# RUN corepack enable \
-#   && corepack prepare pnpm@latest --activate \
-#   && pnpm install \ 
-#   && pnpm build
-
-# CMD yarn start
-# ENTRYPOINT [ "executable" ]
-# ------------- should be different from Dockerfile.dev

@@ -1,5 +1,4 @@
-def version
-
+/* groovylint-disable FactoryMethodName */
 def incrementVersion() {
     echo 'incrementing version...'
     sh 'yarn version --patch --no-git-tag-version'
@@ -8,7 +7,7 @@ def incrementVersion() {
 def buildImage() {
     echo 'building the freedom image...'
 
-    version = sh(
+    def version = sh(
         script: 'npm pkg get version|tr --delete \\"',
         returnStdout: true
     ).trim()
@@ -25,12 +24,10 @@ def buildImage() {
 }
 
 def commitGithub() {
-    withCredentials([
-        usernamePassword(credentialsId:'github-cred',
-        passwordVariable: 'PASS',
-        usernameVariable:'USER')
-    ]) {
-        sh "git remote set-url origin https://${USER}:${PASS}@github.com/davaeiha/freedom.git"
+    sshagent(['github-ssh']) {
+        sh 'git config --global user.name davaeiha'
+        sh 'git config --global user.email m.m.davaeiha@gmail.com'
+        sh 'git remote set-url origin git@github.com:davaeiha/freedom.git'
         sh 'git add .'
         sh "git commit -m \"new version: added\""
         sh 'git push origin HEAD:dev'
