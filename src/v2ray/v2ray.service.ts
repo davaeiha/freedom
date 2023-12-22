@@ -11,10 +11,12 @@ import {
   BuyPackageDocument,
   BuyPackageMutation,
   BuyPackageMutationVariables,
-  PackageType,
   ClientStatsDocument,
   ClientStatsQuery,
   ClientStatsQueryVariables,
+  PackagesQuery,
+  PackagesQueryVariables,
+  PackagesDocument,
 } from './arvan.schema';
 import { RedisService } from '../redis/redis.service';
 import { Interval, Timeout } from '@nestjs/schedule';
@@ -46,10 +48,10 @@ export class V2rayService {
     await this.redis.set('arvan_access_token', token.refreshToken.accessToken);
   }
 
-  async buyPackageArvan(type: PackageType): Promise<string> {
+  async buyPackageArvan(packageId : string): Promise<string> {
     return (
       await this.client.request<BuyPackageMutation, BuyPackageMutationVariables>(BuyPackageDocument, {
-        type,
+        packageId,
       })
     ).buyPackage;
   }
@@ -58,5 +60,9 @@ export class V2rayService {
     return this.client.request<ClientStatsQuery, ClientStatsQueryVariables>(ClientStatsDocument, {
       id: config_id,
     });
+  }
+
+  async getPackages(){
+    return this.client.request<PackagesQuery>(PackagesDocument);
   }
 }

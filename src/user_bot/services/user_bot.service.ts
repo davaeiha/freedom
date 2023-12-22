@@ -10,7 +10,6 @@ import { PackageService } from '../../package/package.service';
 import { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram';
 import { OrderService } from '../../order/order.service';
 import { V2rayService } from '../../v2ray/v2ray.service';
-import { PackageType } from '../../v2ray/arvan.schema';
 import { StaticsSerivice } from './statics.service';
 import { JalaliDateTime } from '@webilix/jalali-date-time';
 import { menuButtons } from '../buttons';
@@ -34,6 +33,8 @@ export class UserBotService {
     private readonly v2rayService: V2rayService,
     private readonly staticsService: StaticsSerivice,
   ) {}
+
+  private readonly TestPackageId = '97c710b4-66a3-403b-8a70-3dc358970a45';
 
   async sendNotification(chat_id: string | number, message: string, extra?: Record<string, any>): Promise<any> {
     return this.userBot.telegram.sendMessage(chat_id, message, extra || {});
@@ -152,75 +153,65 @@ export class UserBotService {
     );
   }
 
-  async monthButtons(): Promise<Markup.Markup<InlineKeyboardMarkup>> {
-    const months = JSON.parse((await this.packageService.getMonthFromCache()) as string);
+  async packageButtons(): Promise<Markup.Markup<InlineKeyboardMarkup>> {
+    const packages = JSON.parse((await this.packageService.getPackageFromCache())!);
     return Markup.inlineKeyboard(
-      months.map((month: number) => Markup.button.callback(`${month} ماهه`, `M${month}`)),
+      packages
+        .filter((pack) => pack.traffic >= 1)
+        .map((pack) => Markup.button.callback(`گیگ ${pack.traffic}`, `id_${pack.id}`)),
       {
         columns: 2,
       },
     );
   }
 
-  async volumeButtons(month: number) {
-    const packages = await this.packageService.getVolumeOfMonth(month);
-
-    // console.log(packages[0].volume);
-    const volumes: number[] = [];
-    for (let i = 0; i < packages.length; i++) {
-      volumes.push(packages[i].volume);
-    }
-
-    return Markup.inlineKeyboard(
-      volumes.map((volume) => Markup.button.callback(`${volume} گیگ`, `G${volume}`)),
-      {
-        columns: 2,
+  async buyPackage(user_id: number, order_id: number): Promise<any> {
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id: order_id,
       },
-    );
-  }
+      include: {
+        user: true,
+        package: true,
+      },
+    });
 
-  async buyPackage(user_id: number, package_id: number, title: string): Promise<Order> {
-    const order = await this.orderService.createOrder(user_id, title, package_id);
-    if (order.user.credit! >= order.package.cost) {
+    if (order!.user.credit! >= order!.package.price) {
       await this.prisma.user.update({
         where: {
           id: user_id,
         },
         data: {
           credit: {
-            decrement: order.package.cost,
+            decrement: order!.package.price,
           },
         },
       });
 
-      const config_url = await this.v2rayService.buyPackageArvan(
-        PackageType[`M${order.package.month}_${order.package.volume}G`],
-      );
+      const config_url = await this.v2rayService.buyPackageArvan(order!.package.id);
 
-      return this.orderService.completeOrder(order.id, config_url);
+      return this.orderService.completeOrder(order!.id, config_url);
     }
 
     return order;
   }
 
-  async completeOrder(order_id: number) {
+  async completeInCartOrder(order_id: number) {
     const order = await this.orderService.getInCompleteOrder(order_id);
 
-    if (order!.user.credit! >= order!.package.cost) {
+    if (order!.user.credit! >= order!.package.price) {
       await this.prisma.user.update({
         where: {
           id: order?.user_id,
         },
         data: {
           credit: {
-            decrement: order!.package.cost,
+            decrement: order!.package.price,
           },
         },
       });
 
-      const config_url = await this.v2rayService.buyPackageArvan(
-        PackageType[`M${order!.package.month}_${order!.package.volume}G`],
-      );
+      const config_url = await this.v2rayService.buyPackageArvan(order?.package.id!);
 
       return this.orderService.completeOrder(order!.id, config_url);
     }
@@ -239,13 +230,13 @@ export class UserBotService {
       type: 'article',
       id: pack.id.toString(),
       title: pack.title!,
-      description: `بسته ${pack.package.month} ماهه ${pack.package.volume} گیگ`,
+      description: `بسته سی روزه ${pack.package.traffic} گیگ`,
       input_message_content: {
-        message_text: `عنوان: ${pack.title!}\n بسته ${pack.package.month} ماهه ${
-          pack.package.volume
+        message_text: `عنوان: ${pack.title!}\n بسته سی روزه ${
+          pack.package.traffic
         } گیگ\n تاریخ فعالسازی: ${this.jalali.toTitle(pack.active_at!)}\nساعت سفارش: ${this.jalali.toTime(
           pack.active_at!,
-        )}\n قیمت: ${pack.package.cost} تومان\nکانفیگ:\n<code>${pack.config_url}</code>\n.\n`,
+        )}\n قیمت: ${pack.package.price}  هزار تومان\nکانفیگ:\n<code>${pack.config_url}</code>\n.\n`,
         parse_mode: 'HTML',
       },
       reply_markup: {
@@ -267,10 +258,10 @@ export class UserBotService {
       type: 'article',
       id: pack.id.toString(),
       title: pack.title || 'بدون عنوان',
-      description: `بسته ${pack.package.month} ماهه ${pack.package.volume} گیگ`,
+      description: `بسته سی روزه ${pack.package.traffic} گیگ`,
       input_message_content: {
-        message_text: `عنوان: ${pack.title!}\nبسته ${pack.package.month} ماهه ${
-          pack.package.volume
+        message_text: `عنوان: ${pack.title!}\nبسته سی روز ${
+          pack.package.traffic
         } گیگ \nتاریخ سفارش: ${this.jalali.toTitle(pack.created_at)}\nساعت سفارش: ${this.jalali.toTime(
           pack.created_at,
         )}\n.\n`,
@@ -285,5 +276,10 @@ export class UserBotService {
         ],
       },
     }));
+  }
+
+  async getTestPackage() {
+    // await this.orderService.createOrder(user_id, title, this.TestPackageId);
+    return this.v2rayService.buyPackageArvan(this.TestPackageId);
   }
 }

@@ -14,7 +14,7 @@ export class RedisService {
     return this.redis.get(key);
   }
 
-  async set(key: string, value: string): Promise<void> {
-    await this.redis.set(key, value);
+  async set(key: string, value: string, ttl?: number): Promise<void> {
+    await this.redis.set(key, value, ttl);
   }
 }

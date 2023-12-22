@@ -11,6 +11,7 @@ const sessions = new RedisSession({
     host: process.env.REDIS_HOST!,
     port: process.env.REDIS_PORT || 6379,
     db: 2,
+    url: process.env.REDIS_URL,
   },
 });
 @Module({

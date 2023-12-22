@@ -29,15 +29,16 @@ model User {
 }
 
 model Package {
-  id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now())
-  month      Int
-  volume     Int
-  cost       Int
-  oreders    Order[]
-  deprecated Boolean  @default(false)
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at     DateTime  @default(now())
+  updated_at     DateTime? @updatedAt
+  expirationDays Int
+  traffic        Int
+  price          Int
+  userCount      Int       @default(0)
+  oreders        Order[]
 
-  @@unique([month, volume, created_at])
+  @@unique([expirationDays, traffic, created_at])
 }
 
 model Order {
@@ -46,7 +47,7 @@ model Order {
   active_at  DateTime?
   user_id    Int
   config_url String?
-  package_id Int
+  package_id String    @db.Uuid
   title      String?
   package    Package   @relation(fields: [package_id], references: [id])
   user       User      @relation(fields: [user_id], references: [id])
@@ -77,31 +78,4 @@ model AdminPaymentMessages {
 enum Role {
   ADMIN
   USER
-}
-
-enum PackageType {
-  M1_20G
-  M1_40G
-  M1_60G
-  M1_80G
-  M1_100G
-  M1_120G
-  M1_160G
-  M1_200G
-  M3_60G
-  M3_120G
-  M3_180G
-  M3_240G
-  M3_300G
-  M3_360G
-  M3_480G
-  M3_600G
-  M6_120G
-  M6_240G
-  M6_360G
-  M6_480G
-  M6_600G
-  M6_720G
-  M6_960G
-  M6_1200G
 }

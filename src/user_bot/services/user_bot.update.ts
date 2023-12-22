@@ -50,23 +50,23 @@ export class UserBotUpdate {
         id = ctx.update.edited_message.from.id;
     }
 
-    const cachedUser = await this.redisService.get(id!.toString());
+    if (id !== undefined) {
+      const cachedUser = await this.redisService.get(id!.toString());
+      if (cachedUser) {
+        this.user = JSON.parse(cachedUser);
+        return next();
+      }
 
-    if (cachedUser) {
-      this.user = JSON.parse(cachedUser);
-      return next();
-    }
-
-    const dbUser = await this.prisma.user.findUnique({
-      where: {
-        id: Number(id),
-      },
-    });
-
-    if (dbUser) {
-      this.user = dbUser;
-      await this.redisService.set(id!.toString(), JSON.stringify(this.user));
-      return next();
+      const dbUser = await this.prisma.user.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+      if (dbUser) {
+        this.user = dbUser;
+        await this.redisService.set(id!.toString(), JSON.stringify(this.user));
+        return next();
+      }
     }
 
     await ctx.reply('شما مجاز به استفاده از این ربات نیستید 🛑');
@@ -91,7 +91,7 @@ export class UserBotUpdate {
   @Action('CREDIT')
   async getInventory(@Ctx() ctx: TelegrafActionType) {
     await ctx.deleteMessage();
-    await ctx.reply(`موجودی شما : ${this.user!.credit} تومان`);
+    await ctx.reply(`موجودی شما : ${this.user!.credit} هزار تومان`);
   }
 
   @Action('CHARGE')
@@ -108,6 +108,18 @@ export class UserBotUpdate {
   @Action('BUY')
   async buypackage(@Ctx() ctx: Scenes.SceneContext) {
     await ctx.scene.enter('BuyWizard');
+  }
+
+  @Action('TEST')
+  async testPackage(@Ctx() ctx: TelegrafActionType) {
+    const user_id = ctx.update.callback_query.from.id;
+    const testConfigUrl = await this.userBotService.getTestPackage();
+    await ctx.reply(
+      `بسته تستی با حجم 256 مگابایت و به مدت سی روزه براتون با کانفیگ زیر فعال شد.🧪\n.\n.\n.\n بزن روش کپی میشه👇\n.<code>${testConfigUrl}</code>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
   }
 
   @Action(new RegExp(/^APPROVE_\d+$/, 'g'))
@@ -187,7 +199,7 @@ export class UserBotUpdate {
   async completeOrder(@Ctx() ctx: TelegrafActionType) {
     const orderId: string = ctx.update.callback_query.data.slice(9);
 
-    const completedOrder = await this.userBotService.completeOrder(Number(orderId));
+    const completedOrder = await this.userBotService.completeInCartOrder(Number(orderId));
     if (!completedOrder!.config_url) {
       await this.userBotService.sendNotification(
         Number(this.user?.id),

@@ -7,7 +7,11 @@ import { TelegrafActionSceneType, TelegrafOnTextSceneType } from '../../common/c
 
 @Scene('APPROVE_PAYMENT')
 export class ApproveScene {
-  constructor(private readonly paymentService: PaymentService, private readonly eventEmitter: EventEmitter2) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
+
   @SceneEnter()
   async entrance(@Ctx() ctx: TelegrafActionSceneType): Promise<void> {
     const paymentId: string = ctx.update.callback_query.data.slice(8);
@@ -26,7 +30,7 @@ export class ApproveScene {
       ctx.scene.state['data'].admin_id = adminId;
       await ctx.scene.leave();
     } else {
-      await ctx.reply('چه قدر شارژ بشه(تومان)؟');
+      await ctx.reply('چه قدر شارژ بشه(هزار تومان)؟');
     }
   }
 

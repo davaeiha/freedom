@@ -19,9 +19,11 @@ import { StaticsSerivice } from './services/statics.service';
 
 const sessions = new RedisSession({
   store: {
-    host: process.env.REDIS_HOST!,
+    host: '127.0.0.1',
     port: process.env.REDIS_PORT || 6379,
+    // password:'v2ray_redis_pass',
     db: 1,
+    url:process.env.REDIS_URL
   },
 });
 

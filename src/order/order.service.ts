@@ -6,7 +6,7 @@ import { PrismaService } from 'nestjs-prisma';
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOrder(user_id: number, title: string, package_id: number) {
+  async createOrder(user_id: number, title: string, package_id: string) {
     return this.prisma.order.create({
       data: {
         user_id,

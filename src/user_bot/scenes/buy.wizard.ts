@@ -1,9 +1,10 @@
-import { Action, Context, Ctx, On, Wizard, WizardStep } from 'nestjs-telegraf';
-import { Markup, Scenes } from 'telegraf';
+import { Action, Context, Ctx, Next, On, Use, Wizard, WizardStep } from 'nestjs-telegraf';
+import { Scenes } from 'telegraf';
 import { TelegrafActionWizardType, TelegrafOnTextWizardType } from '../../common/contracts/IBot';
 import { OrderService } from '../../order/order.service';
 import { UserBotService } from '../services/user_bot.service';
 import { PackageService } from '../../package/package.service';
+import { NextFunction } from 'express';
 
 @Wizard('BuyWizard')
 export class BuyWizard {
@@ -13,80 +14,69 @@ export class BuyWizard {
     private readonly packageService: PackageService,
   ) {}
 
+  @Use()
+  async buyMiddleware(@Ctx() ctx: any, @Next() next: NextFunction) {
+    if (ctx.update.message !== undefined && ctx.update.message.text === 'منو اصلی') {
+      await ctx.scene.leave();
+      await this.userBotService.mainMenuMessage(ctx);
+    }
+    return next();
+  }
+
   @WizardStep(1)
-  async showMonth(@Context() ctx: Scenes.WizardContext): Promise<void> {
-    console.log(ctx.session);
-    // if (!ctx.wizard.state['data']) {
-    //   console.log(ctx.wizard.step);
-    // }
-    ctx.wizard.state['data']<Record<string, string>> = {};
+  async showPackages(@Context() ctx: Scenes.WizardContext): Promise<void> {
+    ctx.wizard.state['data']<Record<string, any>> = {};
     await ctx.deleteMessage();
-    const buttons = await this.userBotService.monthButtons();
-    await ctx.reply('بسته چند ماهه میخوای؟', buttons);
+    const buttons = await this.userBotService.packageButtons();
+    await ctx.reply('کدوم بسته رو میخوای؟\n.\n.\n.\nهمه بسته ها به مدت سی روز و بدون محدودیت کاربر هستش 👇', buttons);
     ctx.wizard.next();
   }
 
   @WizardStep(2)
-  @Action(new RegExp(/^M\d$/, 'g'))
-  async showVolume(@Ctx() ctx: TelegrafActionWizardType): Promise<void> {
-    console.log(ctx.session);
-    const monthMark: string = ctx.update.callback_query.data;
-    ctx.wizard.state['data'].month = monthMark.slice(1);
-    const buttons = await this.userBotService.volumeButtons(Number(ctx.wizard.state['data'].month));
+  @Action(new RegExp(/^id_+/, 'g'))
+  async showPrice(@Ctx() ctx: TelegrafActionWizardType) {
+    const packId = ctx.update.callback_query.data.slice(3);
+    const pack = await this.packageService.getPackageById(packId);
+    ctx.wizard.state['data'].pack = pack;
     await ctx.deleteMessage();
-    await ctx.reply(`چه مقدار حجم(گیگابایت) واسه ${ctx.wizard.state['data'].month} ماه میخوای؟`, buttons);
+    await ctx.reply(
+      `هزینه بسته سی روزه ${pack.traffic} گیگ ${pack.price}هزار تومنه.\n.\n.\n.\n لطفا اگر قصد خرید داری یه اسم واسه سفارشت بذار این اسم واسه اینه که بتونی بعدا دسترسی بهتری به بسته ات داشته باشی و هرچیزی هم میتونه باشه مثلا اسم یا لقب کسی که داری براش خرید میکنی 👇`,
+    );
     ctx.wizard.next();
   }
 
   @WizardStep(3)
-  @Action(new RegExp(/^G\d+$/, 'g'))
-  async selectPackage(@Ctx() ctx: TelegrafActionWizardType): Promise<void> {
-    console.log(ctx.session);
-    const volumeMark = ctx.update.callback_query.data;
-    // ctx.wizard.state['data'].volume = volumeMark.slice(1);
-    const pack = await this.packageService.getLastPackage(
-      Number(ctx.wizard.state['data'].month),
-      Number(volumeMark.slice(1)),
+  @On('text')
+  async selectTitle(@Ctx() ctx: TelegrafOnTextWizardType): Promise<void> {
+    const order = await this.orderService.createOrder(
+      ctx.update.message.from.id,
+      ctx.update.message.text,
+      ctx.wizard.state['data'].pack.id,
     );
 
-    ctx.wizard.state['data'].pack = pack;
-    await ctx.deleteMessage();
-    await ctx.reply(
-      'لطفا یه اسم واسه بسته ای که میخوای تهیه کنی بذار. \n.\n.\n این اسم واسه اینه که بتونی بعدا دسترسی بهتری به بسته ات داشته باشی و هرچیزی هم میتونه باشه مثلا اسم یا لقب کسی که داری براش خرید میکنی.',
-    );
+    ctx.wizard.state['data'].order = order;
+
+    await ctx.reply(`سفارش شما با شناسه ${order.id} و عنوان <b>${order.title}</b> به سبد خریدتون اضافه شد 😇`, {
+      reply_markup: {
+        inline_keyboard: [[{ text: 'ثبت سفارش و پرداخت', callback_data: 'ADD_TO_CART' }]],
+      },
+      parse_mode: 'HTML',
+    });
     ctx.wizard.next();
   }
 
   @WizardStep(4)
-  @On('text')
-  async selectTitle(@Ctx() ctx: TelegrafOnTextWizardType): Promise<void> {
-    console.log(ctx.session);
-    ctx.wizard.state['data'].title = ctx.update.message.text;
-    await ctx.reply(
-      `هزینه بسته ${ctx.wizard.state['data'].month} ماهه ${ctx.wizard.state['data'].pack.volume} گیگ , ${ctx.wizard.state['data'].pack.cost} تومان هستش 😉\n`,
-      {
-        reply_markup: {
-          inline_keyboard: [[{ text: 'ثبت سفارش و پرداخت', callback_data: 'ADD_TO_CART' }]],
-        },
-      },
-    );
-    ctx.wizard.next();
-  }
-
-  @WizardStep(5)
   @Action('ADD_TO_CART')
   async addToCart(@Ctx() ctx: TelegrafActionWizardType): Promise<void> {
-    console.log(ctx.session);
     const user_id = ctx.update.callback_query.from.id;
-    const { pack, title } = ctx.wizard.state['data'];
 
-    const orderResult = await this.userBotService.buyPackage(Number(user_id), Number(pack.id), title);
+    const orderResult = await this.userBotService.buyPackage(Number(user_id), ctx.wizard.state['data'].order.id);
 
     await ctx.deleteMessage();
 
     if (!orderResult.config_url) {
       await ctx.reply(
-        `سفارش شما با شناسه ${orderResult.id} و عنوان <b>${orderResult.title}</b> به سبد خریدتون اضافه شد ولی موجودیتون واسه تکمیل سفارش کافی نبود \nبعد از افزایش موجودی از سبد خرید توی منوی اصلی میتونید سفارشتون رو تکمیل کنید `,
+        `متاسفانه موجودیتون واسه پرداخت هزینه بسته کافی نیست.☹️\n.\n.\n.\n بعد از افزایش موجودی میتونید از طریق منو اصلی و سبد خرید سفارشتون رو تکمیل کنید`,
         {
           reply_markup: {
             inline_keyboard: [[{ text: 'افزایش موجودی', callback_data: 'CHARGE' }]],

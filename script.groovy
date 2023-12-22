@@ -29,8 +29,8 @@ def commitGithub() {
         sh 'git config --global user.email m.m.davaeiha@gmail.com'
         sh 'git remote set-url origin git@github.com:davaeiha/freedom.git'
         sh 'git add .'
-        sh "git commit -m \"new version: added\""
-        sh 'git push origin HEAD:dev'
+        sh 'git commit -m \"new version: added\"'
+        sh 'git push origin HEAD:master'
     }
 }
 

@@ -19,16 +19,17 @@ Table User {
 }
 
 Table Package {
-  id Int [pk, increment]
+  id String [pk]
   created_at DateTime [default: `now()`, not null]
-  month Int [not null]
-  volume Int [not null]
-  cost Int [not null]
+  updated_at DateTime
+  expirationDays Int [not null]
+  traffic Int [not null]
+  price Int [not null]
+  userCount Int [not null, default: 0]
   oreders Order [not null]
-  deprecated Boolean [not null, default: false]
 
   indexes {
-    (month, volume, created_at) [unique]
+    (expirationDays, traffic, created_at) [unique]
   }
 }
 
@@ -38,7 +39,7 @@ Table Order {
   active_at DateTime
   user_id Int [not null]
   config_url String
-  package_id Int [not null]
+  package_id String [not null]
   title String
   package Package [not null]
   user User [not null]
@@ -69,33 +70,6 @@ Table AdminPaymentMessages {
 Enum Role {
   ADMIN
   USER
-}
-
-Enum PackageType {
-  M1_20G
-  M1_40G
-  M1_60G
-  M1_80G
-  M1_100G
-  M1_120G
-  M1_160G
-  M1_200G
-  M3_60G
-  M3_120G
-  M3_180G
-  M3_240G
-  M3_300G
-  M3_360G
-  M3_480G
-  M3_600G
-  M6_120G
-  M6_240G
-  M6_360G
-  M6_480G
-  M6_600G
-  M6_720G
-  M6_960G
-  M6_1200G
 }
 
 Ref: Order.package_id > Package.id

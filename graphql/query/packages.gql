@@ -1,0 +1,10 @@
+query Packages{
+  packages{
+    id
+    price
+    traffic
+    userCount
+    expirationDays
+    createdAt
+  }
+}

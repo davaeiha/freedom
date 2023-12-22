@@ -1,5 +1,5 @@
-mutation buyPackage($type:PackageType!){
+mutation buyPackage($packageId: String!){
   buyPackage(data:{
-    type:$type
+    packageId:$packageId
   })
 }

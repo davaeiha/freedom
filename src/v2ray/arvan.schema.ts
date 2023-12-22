@@ -46,7 +46,7 @@ export type Auth = {
 };
 
 export type BuyPackageInput = {
-  type: PackageType;
+  packageId: Scalars['String']['input'];
 };
 
 export type ChangePasswordInput = {
@@ -83,6 +83,7 @@ export type CreateDomainInput = {
 
 export type CreateServerInput = {
   domain: Scalars['String']['input'];
+  inboundId: Scalars['Int']['input'];
   ip: Scalars['String']['input'];
   type: ServerCountry;
 };
@@ -218,33 +219,18 @@ export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
 };
 
-/** PackageType */
-export enum PackageType {
-  M1_20G = 'M1_20G',
-  M1_40G = 'M1_40G',
-  M1_60G = 'M1_60G',
-  M1_80G = 'M1_80G',
-  M1_100G = 'M1_100G',
-  M1_120G = 'M1_120G',
-  M1_160G = 'M1_160G',
-  M1_200G = 'M1_200G',
-  M3_60G = 'M3_60G',
-  M3_120G = 'M3_120G',
-  M3_180G = 'M3_180G',
-  M3_240G = 'M3_240G',
-  M3_300G = 'M3_300G',
-  M3_360G = 'M3_360G',
-  M3_480G = 'M3_480G',
-  M3_600G = 'M3_600G',
-  M6_120G = 'M6_120G',
-  M6_240G = 'M6_240G',
-  M6_360G = 'M6_360G',
-  M6_480G = 'M6_480G',
-  M6_600G = 'M6_600G',
-  M6_720G = 'M6_720G',
-  M6_960G = 'M6_960G',
-  M6_1200G = 'M6_1200G',
-}
+export type Package = {
+  __typename?: 'Package';
+  /** Identifies the date and time when the object was created. */
+  createdAt: Scalars['DateTime']['output'];
+  expirationDays: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  price: Scalars['Int']['output'];
+  traffic: Scalars['Float']['output'];
+  /** Identifies the date and time when the object was last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  userCount: Scalars['Int']['output'];
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -253,6 +239,7 @@ export type Query = {
   hello: Scalars['String']['output'];
   helloWorld: Scalars['String']['output'];
   me: User;
+  packages: Array<Package>;
 };
 
 export type QueryClientStatsArgs = {
@@ -279,6 +266,7 @@ export type Server = {
   createdAt: Scalars['DateTime']['output'];
   domain: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  inboundId: Scalars['Int']['output'];
   ip: Scalars['String']['output'];
   token: Scalars['String']['output'];
   type: ServerCountry;
@@ -290,6 +278,7 @@ export type Server = {
 export enum ServerCountry {
   De = 'DE',
   Nl = 'NL',
+  Tr = 'TR',
 }
 
 export type SignupInput = {
@@ -344,7 +333,7 @@ export type User = {
 };
 
 export type BuyPackageMutationVariables = Exact<{
-  type: PackageType;
+  packageId: Scalars['String']['input'];
 }>;
 
 export type BuyPackageMutation = { __typename?: 'Mutation'; buyPackage: string };
@@ -409,9 +398,24 @@ export type ClientStatsQuery = {
   }>;
 };
 
+export type PackagesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type PackagesQuery = {
+  __typename?: 'Query';
+  packages: Array<{
+    __typename?: 'Package';
+    id: string;
+    price: number;
+    traffic: number;
+    userCount: number;
+    expirationDays: number;
+    createdAt: any;
+  }>;
+};
+
 export const BuyPackageDocument = gql`
-  mutation buyPackage($type: PackageType!) {
-    buyPackage(data: { type: $type })
+  mutation buyPackage($packageId: String!) {
+    buyPackage(data: { packageId: $packageId })
   }
 `;
 export const LoginDocument = gql`
@@ -461,6 +465,18 @@ export const ClientStatsDocument = gql`
       total
       createdAt
       updatedAt
+    }
+  }
+`;
+export const PackagesDocument = gql`
+  query Packages {
+    packages {
+      id
+      price
+      traffic
+      userCount
+      expirationDays
+      createdAt
     }
   }
 `;
@@ -530,6 +546,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         'ClientStats',
+        'query',
+      );
+    },
+    Packages(variables?: PackagesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<PackagesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<PackagesQuery>(PackagesDocument, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
+        'Packages',
         'query',
       );
     },
@@ -625,6 +649,7 @@ export type ResolversTypes = {
   Domain: ResolverTypeWrapper<Domain>;
   DomainState: DomainState;
   DomainsFiltersInput: DomainsFiltersInput;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GetClientStatsFiltersInput: GetClientStatsFiltersInput;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -632,7 +657,7 @@ export type ResolversTypes = {
   JWT: ResolverTypeWrapper<Scalars['JWT']['output']>;
   LoginInput: LoginInput;
   Mutation: ResolverTypeWrapper<{}>;
-  PackageType: PackageType;
+  Package: ResolverTypeWrapper<Package>;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
   Server: ResolverTypeWrapper<Server>;
@@ -664,6 +689,7 @@ export type ResolversParentTypes = {
   DnsValue: DnsValue;
   Domain: Domain;
   DomainsFiltersInput: DomainsFiltersInput;
+  Float: Scalars['Float']['output'];
   GetClientStatsFiltersInput: GetClientStatsFiltersInput;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -671,6 +697,7 @@ export type ResolversParentTypes = {
   JWT: Scalars['JWT']['output'];
   LoginInput: LoginInput;
   Mutation: {};
+  Package: Package;
   Query: {};
   Server: Server;
   SignupInput: SignupInput;
@@ -823,6 +850,20 @@ export type MutationResolvers<
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'data'>>;
 };
 
+export type PackageResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Package'] = ResolversParentTypes['Package'],
+> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  expirationDays?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  price?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  traffic?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  userCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
@@ -832,6 +873,7 @@ export type QueryResolvers<
   hello?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryHelloArgs, 'name'>>;
   helloWorld?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  packages?: Resolver<Array<ResolversTypes['Package']>, ParentType, ContextType>;
 };
 
 export type ServerResolvers<
@@ -841,6 +883,7 @@ export type ServerResolvers<
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   domain?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  inboundId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   ip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ServerCountry'], ParentType, ContextType>;
@@ -882,6 +925,7 @@ export type Resolvers<ContextType = any> = {
   Domain?: DomainResolvers<ContextType>;
   JWT?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
+  Package?: PackageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Server?: ServerResolvers<ContextType>;
   Token?: TokenResolvers<ContextType>;
